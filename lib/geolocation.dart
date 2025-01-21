@@ -2,79 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:flutter_map/flutter_map.dart';
-import 'package:collection/collection.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
 
-// Our Locaiton model class combines data from OpenStreetMap API and LatLng coordinates
-class Location {
-  Location({
-    required this.latitude,
-    required this.longitude,
-    this.bounds,
-    this.city,
-    this.country,
-    this.countryCode,
-    this.displayName,
-    this.neighbourhood,
-    this.postcode,
-    this.road,
-    this.state,
-  });
+import 'location.dart';
 
-  final double latitude;
-  final double longitude;
-  final List<double>? bounds;
-  final String? city;
-  final String? country;
-  final String? countryCode;
-  final String? displayName;
-  final String? neighbourhood;
-  final String? postcode;
-  final String? road;
-  final String? state;
-
-  LatLng get latLng => LatLng(latitude, longitude);
-
-  bool get hasBounds => bounds?.length == 4;
-
-  LatLngBounds? get latLngBounds => hasBounds
-      ? LatLngBounds(
-          LatLng(bounds![0], bounds![2]),
-          LatLng(bounds![1], bounds![3]),
-        )
-      : null;
-
-  factory Location.fromOpenStreetMapJson(Map<String, dynamic> json) {
-    // If there are no coordinates, throw an error
-    if (!json.containsKey('lat') || !json.containsKey('lon')) {
-      throw Exception('No coordinates found');
-    }
-
-    return Location(
-      latitude: double.parse(json['lat']),
-      longitude: double.parse(json['lon']),
-      countryCode: json['address']['country_code'],
-      country: json['address']['country'],
-      road: json['address']['road'],
-      city: json['address']['city'],
-      postcode: json['address']['postcode'],
-      state: json['address']['state'],
-      neighbourhood: json['address']['neighbourhood'],
-      displayName: json['display_name'],
-    );
-  }
-
-  @override
-  String toString() {
-    return displayName ?? '$latitude, $longitude';
-  }
-}
-
-// We will use the OpenStreetMap API for geocoding and reverse geocoding
+// We use the OpenStreetMap API for geocoding and reverse geocoding
 Future<dynamic> makeOpenStreetMapRequest({
   required String path,
   Map<String, dynamic>? queryParams,
@@ -158,6 +92,7 @@ Future<List<Location>> searchLocation(String query) async {
         'q': query,
         'limit': 10,
         'addressdetails': 1,
+        'polygon_geojson': 1,
       },
     );
     // Convert the JSON data into a list of Location objects

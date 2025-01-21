@@ -11,6 +11,7 @@ import 'geolocation.dart' as Geolocation;
 import 'debounced_search_bar.dart';
 import 'round_icon_button.dart';
 import 'geolocation.dart';
+import 'location.dart';
 
 class LocationMap extends StatefulWidget {
   const LocationMap({
@@ -86,12 +87,12 @@ class _LocationMapState extends State<LocationMap> {
   }
 
   void _setLocation(Location location) {
+    print('Location zoom: ${location.zoom}');
     // Move the map to the new location
-    _mapController.move(location.latLng, 10);
+    _mapController.move(location.latLng, location.zoom ?? 10.0);
     // Fit the camera to the bounds if available
-    if (location.hasBounds) {
-      final bounds = location.latLngBounds!;
-      _mapController.fitCamera(CameraFit.bounds(bounds: bounds));
+    if (location.latLngBounds != null) {
+      _mapController.fitCamera(CameraFit.bounds(bounds: location.latLngBounds!));
     }
     setState(() {
       // Update the location and reset the map moved flag
@@ -152,17 +153,8 @@ class _LocationMapState extends State<LocationMap> {
     }
   }
 
-  void _onBoundsChanged () {
-    final visibleBounds = _mapController.camera.visibleBounds;
-    final LatLngBounds bounds = LatLngBounds(
-      LatLng(visibleBounds.north, visibleBounds.west),
-      LatLng(visibleBounds.south, visibleBounds.east),
-    );
-    final center = _mapController.camera.center;
-    widget.onBoundsChanged?.call(bounds, center);
-  }
-
   void _onMapMoved() {
+    // Set the map moved flag to true to show the recenter button
     setState(() {
       _isMapMoved = true;
     });
@@ -173,8 +165,25 @@ class _LocationMapState extends State<LocationMap> {
     }
     // Wait for 500ms before calling onBoundsChanged again
     _mapMovedTimer = Timer(const Duration(milliseconds: 500), () {
-      _onBoundsChanged();
+      final bounds = _mapController.camera.visibleBounds;
+      final center = _mapController.camera.center;
+      widget.onBoundsChanged?.call(bounds, center);
     });
+  }
+
+  void _onLongPress(LatLng latLng) async {
+    // Try to get the location from the coordinates
+    try {
+      final location = await Geolocation.getLocationByCoordinates(
+        latitude: latLng.latitude,
+        longitude: latLng.longitude,
+      );
+      if (location != null) {
+        _setLocation(location);
+      }
+    } catch (error) {
+      _showErrorDialog('Failed to get location', error.toString());
+    }
   }
 
   @override
@@ -199,6 +208,9 @@ class _LocationMapState extends State<LocationMap> {
             onPositionChanged: (position, hasGesture) {
               _onMapMoved();
             },
+            onLongPress: (point, latLng) {
+              _onLongPress(latLng);
+            },
             onMapReady: () {
               _initMap();
             },
@@ -209,9 +221,14 @@ class _LocationMapState extends State<LocationMap> {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.example.app',
             ),
-            MarkerLayer(
-              markers: [
-                if (_location != null)
+            if (_location?.geometry != null) ...[
+              PolygonLayer(
+                polygons: _location!.geometry!,
+              )
+            ],
+            if (_location != null) ...[
+              MarkerLayer(
+                markers: [  
                   Marker(
                     point: _location!.latLng,
                     alignment: Alignment.topCenter,
@@ -222,8 +239,9 @@ class _LocationMapState extends State<LocationMap> {
                       child: const Icon(Icons.location_pin, size: 48.0),
                     ),
                   ),
-              ],
-            ),
+                ],
+              ),
+            ],
             RichAttributionWidget(
               attributions: [
                 TextSourceAttribution(

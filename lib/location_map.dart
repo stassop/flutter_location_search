@@ -10,7 +10,6 @@ import 'geolocation.dart' as Geolocation;
 
 import 'debounced_search_bar.dart';
 import 'round_icon_button.dart';
-import 'geolocation.dart';
 import 'location.dart';
 
 class LocationMap extends StatefulWidget {
@@ -87,12 +86,14 @@ class _LocationMapState extends State<LocationMap> {
   }
 
   void _setLocation(Location location) {
-    print('Location zoom: ${location.zoom}');
     // Move the map to the new location
     _mapController.move(location.latLng, location.zoom ?? 10.0);
     // Fit the camera to the bounds if available
-    if (location.latLngBounds != null) {
-      _mapController.fitCamera(CameraFit.bounds(bounds: location.latLngBounds!));
+    if (location.bounds != null && location.geometry != null) {
+      _mapController.fitCamera(CameraFit.bounds(
+        bounds: location.bounds!,
+        padding: const EdgeInsets.all(16.0),
+      ));
     }
     setState(() {
       // Update the location and reset the map moved flag
@@ -128,7 +129,7 @@ class _LocationMapState extends State<LocationMap> {
 
   void _recenterMap() {
     if (_location != null && _isMapMoved) {
-      _mapController.move(_location!.latLng, 10);
+      _mapController.move(_location!.latLng, _location!.zoom ?? 10.0);
       _mapController.rotate(0.0);
       setState(() {
         _isMapMoved = false;
@@ -195,6 +196,7 @@ class _LocationMapState extends State<LocationMap> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      fit: StackFit.expand,
       children: [
         FlutterMap(
           mapController: _mapController,
@@ -236,13 +238,15 @@ class _LocationMapState extends State<LocationMap> {
                     width: 48,
                     child: Tooltip(
                       message: _location!.toString(),
-                      child: const Icon(Icons.location_pin, size: 48.0),
+                      child: Icon(Icons.location_pin,
+                          size: 48.0, color: Theme.of(context).primaryColor),
                     ),
                   ),
                 ],
               ),
             ],
             RichAttributionWidget(
+              alignment: AttributionAlignment.bottomLeft,
               attributions: [
                 TextSourceAttribution(
                   'OpenStreetMap contributors',

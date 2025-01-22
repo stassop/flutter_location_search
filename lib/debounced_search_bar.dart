@@ -77,9 +77,18 @@ class DebouncedSearchBar<T> extends StatefulWidget {
 class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
   final _searchController = SearchController();
   late final _Debounceable<Iterable<T>?, String> _debouncedSearch;
+  final pastResults = <T>[];
 
   _selectResult(T result) {
     widget.onResultSelected?.call(result);
+    // Add the result on top of the list of past results if it is not already there
+    // If the number of past results exceeds 10, remove the oldest one
+    if (!pastResults.contains(result)) {
+      pastResults.insert(0, result);
+      if (pastResults.length > 10) {
+        pastResults.removeLast();
+      }
+    }
   }
 
   Future<Iterable<T>> _search(String query) async {
@@ -140,20 +149,42 @@ class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
         final Future<Iterable<T>?> future = _debouncedSearch(controller.text);
         try {
           final Iterable<T>? results = await future;
-          if (results == null || results.isEmpty) {
-            return <Widget>[];
+          // If results is not null and not empty, return a list of ListTile widgets
+          if (results?.isNotEmpty ?? false) {
+            return results!.map((result) {
+              return ListTile(
+                title: widget.titleBuilder?.call(result),
+                subtitle: widget.subtitleBuilder?.call(result),
+                leading: widget.leadingIconBuilder?.call(result),
+                onTap: () {
+                  _selectResult(result);
+                  controller.closeView(result.toString());
+                },
+              );
+            }).toList();
           }
-          return results.map((result) {
-            return ListTile(
-              title: widget.titleBuilder?.call(result),
-              subtitle: widget.subtitleBuilder?.call(result),
-              leading: widget.leadingIconBuilder?.call(result),
-              onTap: () {
-                _selectResult(result);
-                controller.closeView(result.toString());
-              },
-            );
-          }).toList();
+          // Otherwise, if there's no search term, return a list of past results
+          if (controller.text.isEmpty && pastResults.isNotEmpty) {
+            // Add a tile with a history icon and 'Search history' title
+            return <Widget>[
+              ListTile(
+                leading: const Icon(Icons.history),
+                title: const Text('Search history'),
+              ),
+              for (final result in pastResults)
+                ListTile(
+                  title: widget.titleBuilder?.call(result),
+                  subtitle: widget.subtitleBuilder?.call(result),
+                  leading: widget.leadingIconBuilder?.call(result),
+                  onTap: () {
+                    _selectResult(result);
+                    controller.closeView(result.toString());
+                  },
+                ),
+            ];
+          }
+          // If there are no results, return an empty list
+          return <Widget>[];
         } catch (error) {
           return <Widget>[];
         }

@@ -15,12 +15,13 @@ Future<dynamic> makeOpenStreetMapRequest({
 }) async {
   try {
     // Convert all special types in the query parameters to strings to avoid errors such as this:
-    // type 'double' is not a subtype of type 'Iterable<dynamic>'
+    // type 'int' is not a subtype of type 'Iterable<dynamic>'
     if (queryParams != null) {
       queryParams =
           queryParams.map((key, value) => MapEntry(key, value.toString()))
               as Map<String, dynamic>;
     }
+
     // Get the current language code from the locale to pass to the API
     final language = Intl.getCurrentLocale().split('_').first;
 
@@ -30,26 +31,29 @@ Future<dynamic> makeOpenStreetMapRequest({
         Uri.https('nominatim.openstreetmap.org', path, {
           if (queryParams != null) ...queryParams,
           'format': 'json',
+          'addressdetails': '1',
+          'polygon_geojson': '1',
           'accept-language': language,
         }))
       ..headers.addAll({
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent': 'MyApp/1.0 (https://my.app)',
-        })
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'MyApp/1.0 (https://my.app)',
+      })
       ..followRedirects = false
       ..persistentConnection = false;
 
+    print('Requesting: ${request.url}');
+
     // Send the request and get the StreamedResponse with a timeout
-    final streamedResponse = await request.send().timeout(
-      const Duration(seconds: 5),
-      onTimeout: () {
-        throw TimeoutException('Request timed out');
-      }
-    );
+    final streamedResponse =
+        await request.send().timeout(const Duration(seconds: 5), onTimeout: () {
+      throw TimeoutException('Request timed out');
+    });
 
     // Convert the StreamedResponse into a complete response
-    final http.Response response = await http.Response.fromStream(streamedResponse);
+    final http.Response response =
+        await http.Response.fromStream(streamedResponse);
 
     // Check the response status and handle accordingly
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -70,7 +74,7 @@ Future<dynamic> makeOpenStreetMapRequest({
     } else {
       throw HttpException('Server error: ${response.statusCode}');
     }
-  // Catch possible specific exceptions
+    // Catch possible specific exceptions
   } on TimeoutException {
     throw Exception('Request timed out');
   } on SocketException {
@@ -84,6 +88,7 @@ Future<dynamic> makeOpenStreetMapRequest({
   }
 }
 
+// Call the OpenStreetMap API to search for locations
 Future<List<Location>> searchLocation(String query) async {
   try {
     final data = await makeOpenStreetMapRequest(
@@ -91,8 +96,6 @@ Future<List<Location>> searchLocation(String query) async {
       queryParams: {
         'q': query,
         'limit': 10,
-        'addressdetails': 1,
-        'polygon_geojson': 1,
       },
     );
     // Convert the JSON data into a list of Location objects
@@ -105,7 +108,7 @@ Future<List<Location>> searchLocation(String query) async {
   }
 }
 
-// The reverse endpoint returns exactly one result 
+// The reverse endpoint returns exactly one result
 // or an error when the coordinate is in an area with no OSM data coverage:
 // https://nominatim.org/release-docs/latest/api/Reverse/
 Future<Location?> getLocationByCoordinates(
@@ -128,6 +131,7 @@ Future<Location?> getLocationByCoordinates(
   }
 }
 
+// Use the user's locale to get the country code and search for the location
 Future<Location?> getLocationByLocale() async {
   try {
     final countryCode = Intl.getCurrentLocale().split('_').last;
@@ -135,7 +139,6 @@ Future<Location?> getLocationByLocale() async {
       path: 'search',
       queryParams: {
         'country': countryCode,
-        'format': 'json',
       },
     );
     final results = List<Map<String, dynamic>>.from(data);
@@ -173,7 +176,8 @@ Future<Location> getCurrentLocation() async {
 
   if (locationPermission == LocationPermission.deniedForever) {
     // Permissions are denied forever, handle appropriately.
-    return Future.error('Location permissions are denied permanently. Please enable them in settings.');
+    return Future.error(
+        'Location permissions are denied permanently. Please enable them in settings.');
   }
 
   try {

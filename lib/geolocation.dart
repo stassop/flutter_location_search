@@ -30,9 +30,8 @@ Future<dynamic> makeOpenStreetMapRequest({
         'GET',
         Uri.https('nominatim.openstreetmap.org', path, {
           if (queryParams != null) ...queryParams,
-          'format': 'json',
+          'format': 'geojson',
           'addressdetails': '1',
-          'polygon_geojson': '1',
           'accept-language': language,
         }))
       ..headers.addAll({
@@ -89,6 +88,7 @@ Future<dynamic> makeOpenStreetMapRequest({
 }
 
 // Call the OpenStreetMap API to search for locations
+// https://nominatim.org/release-docs/latest/api/Search/#free-form-query
 Future<List<Location>> searchLocation(String query) async {
   try {
     final data = await makeOpenStreetMapRequest(
@@ -99,17 +99,20 @@ Future<List<Location>> searchLocation(String query) async {
       },
     );
     // Convert the JSON data into a list of Location objects
-    final results = List<Map<String, dynamic>>.from(data)
-        .map((result) => Location.fromOpenStreetMapJson(result))
-        .toList();
-    return results;
+    if (data is Map && data.containsKey('features')) {
+      final results = List<Map<String, dynamic>>.from(data['features'])
+          .map((result) => Location.fromGeoJson(result))
+          .toList();
+      return results;
+    } else {
+      return [];
+    }
   } catch (error) {
     throw Exception('Error searching for location: $error');
   }
 }
 
-// The reverse endpoint returns exactly one result
-// or an error when the coordinate is in an area with no OSM data coverage:
+// The reverse endpoint returns exactly one result or an error when the coordinate is in an area with no OSM data coverage:
 // https://nominatim.org/release-docs/latest/api/Reverse/
 Future<Location?> getLocationByCoordinates(
     {required double latitude, required double longitude}) async {
@@ -121,17 +124,20 @@ Future<Location?> getLocationByCoordinates(
         'lon': longitude,
       },
     );
-    if (data is Map) {
-      return Location.fromOpenStreetMapJson(data as Map<String, dynamic>);
-    } else {
-      return null;
+    if (data is Map && data.containsKey('features')) {
+      final results = List<Map<String, dynamic>>.from(data['features']);
+      if (results.isNotEmpty) {
+        return Location.fromGeoJson(results.first);
+      }
     }
+    return null;
   } catch (error) {
     throw Exception('Error getting location from coordinates: $error');
   }
 }
 
 // Use the user's locale to get the country code and search for the location
+// https://nominatim.org/release-docs/latest/api/Search/#structured-query
 Future<Location?> getLocationByLocale() async {
   try {
     final countryCode = Intl.getCurrentLocale().split('_').last;
@@ -141,12 +147,13 @@ Future<Location?> getLocationByLocale() async {
         'country': countryCode,
       },
     );
-    final results = List<Map<String, dynamic>>.from(data);
-    if (results.isNotEmpty) {
-      return Location.fromOpenStreetMapJson(results.first);
-    } else {
-      return null;
+    if (data is Map && data.containsKey('features')) {
+      final results = List<Map<String, dynamic>>.from(data['features']);
+      if (results.isNotEmpty) {
+        return Location.fromGeoJson(results.first);
+      }
     }
+    return null;
   } catch (error) {
     throw Exception('Error getting location from country code: $error');
   }

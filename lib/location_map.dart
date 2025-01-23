@@ -77,19 +77,20 @@ class _LocationMapState extends State<LocationMap> {
         // Use the waze: URL scheme on Android
         mapsUri = Uri.parse('waze://?ll=$lat,$lon&z=$zoom');
       } else {
-        throw 'Could not launch maps app';
+        throw 'Failed to open maps';
       }
       await launchUrl(mapsUri);
     } catch (error) {
-      _showErrorDialog('Failed to launch maps', error.toString());
+      _showErrorDialog('Failed to open maps', error.toString());
     }
   }
 
   void _setLocation(Location location) {
     // Move the map to the new location
-    _mapController.move(location.latLng, location.zoom ?? 10.0);
+    _mapController.move(location.latLng, 10.0);
+    _mapController.rotate(0.0);
     // Fit the camera to the bounds if available
-    if (location.bounds != null && location.geometry != null) {
+    if (location.bounds != null) {
       _mapController.fitCamera(CameraFit.bounds(
         bounds: location.bounds!,
         padding: const EdgeInsets.all(16.0),
@@ -127,18 +128,8 @@ class _LocationMapState extends State<LocationMap> {
     }
   }
 
-  void _recenterMap() {
-    if (_location != null && _isMapMoved) {
-      _mapController.move(_location!.latLng, _location!.zoom ?? 10.0);
-      _mapController.rotate(0.0);
-      setState(() {
-        _isMapMoved = false;
-      });
-    }
-  }
-
   Future<void> _initMap() async {
-    // This is a very hacky way to wait for the parent dimensions, otherwise the map will not become visible
+    // This is a very hacky way to wait for the parent dimensions, otherwise the map may not become visible
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
@@ -223,11 +214,6 @@ class _LocationMapState extends State<LocationMap> {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.example.app',
             ),
-            if (_location?.geometry != null) ...[
-              PolygonLayer(
-                polygons: _location!.geometry!,
-              )
-            ],
             if (_location != null) ...[
               MarkerLayer(
                 markers: [  
@@ -276,7 +262,7 @@ class _LocationMapState extends State<LocationMap> {
                 RoundIconButton(
                   icon: const Icon(Icons.near_me),
                   onPressed: () {
-                    _recenterMap();
+                    _setLocation(_location!);
                   },
                 ),
                 const SizedBox(height: 8.0),

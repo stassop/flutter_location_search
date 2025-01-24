@@ -13,7 +13,7 @@ This article guides you through building a professional-looking and user-friendl
 
 Here’s what we’ll be building:
 
-![Flutter Location Search](flutter_location_gif.gif)
+![Flutter Location Search](flutter_location_search.gif)
 
 Let’s consider the basic requirements for our app:
 

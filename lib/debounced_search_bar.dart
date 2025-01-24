@@ -184,9 +184,17 @@ class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
             ];
           }
           // If there are no results, return an empty list
-          return <Widget>[];
+          return <Widget>[
+            ListTile(
+              title: const Text('No results found'),
+            ),
+          ];
         } catch (error) {
-          return <Widget>[];
+          return <Widget>[
+            ListTile(
+              title: const Text('An error occurred'),
+            ),
+          ];
         }
       },
     );

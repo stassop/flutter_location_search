@@ -25,9 +25,9 @@ Let’s consider the basic requirements for our app:
 * When a location pin is tapped, display location details in a bottom sheet.
 * Allow users to open the currently selected location in the default maps app.
 
-### Leaflet Maps
+### Flutter Map
 
-The Flutter Map package leverages the power of Leaflet maps to bring interactive maps to your Flutter applications. This open-source package provides a rich and highly customizable feature set.
+The [Flutter Map](https://docs.fleaflet.dev) package leverages the power of [Leaflet](https://leafletjs.com) maps to bring interactive maps to your Flutter applications. This open-source package provides a rich and highly customizable feature set.
 
 While Flutter Map is commonly used with Leaflet maps, it’s designed to be agnostic to the underlying map provider. This flexibility allows developers to potentially integrate with other mapping services like Mapbox.
 
@@ -39,11 +39,11 @@ flutter pub add flutter_map
 
 ### Flutter Geolocator
 
-The Flutter Geolocator package simplifies location services within your Flutter apps. It provides access to device location data, including current position and location updates.
+The [Flutter Geolocator](https://pub.dev/packages/geolocator) package simplifies location services within your Flutter apps. It provides access to device location data, including current position and location updates.
 
 Geolocator supports various providers, offers options for permission handling, and enhances user privacy, making it essential for building location-aware applications.
 
-Install the Geolocator package:
+Install the [Geolocator](https://pub.dev/packages/geolocator/install) package:
 
 ```
 flutter pub add geolocator
@@ -72,11 +72,11 @@ For Android, add this to `android/app/src/main/AndroidManifest.xml`
 
 ### LatLong Library
 
-The LatLong package is a lightweight library for performing common geospatial calculations in Dart. It provides a simple and intuitive API for working with geographical coordinates (latitude and longitude).
+The [LatLong](https://pub.dev/packages/latlong2) package is a lightweight library for performing common geospatial calculations in Dart. It provides a simple and intuitive API for working with geographical coordinates (latitude and longitude).
 
 It enables developers to easily calculate distances between points, determine bearings, and perform other essential geospatial operations, and is extensively used by Flutter Map.
 
-Install the LatLong package:
+Install the [LatLong](https://pub.dev/packages/latlong2/install) package:
 
 ```
 flutter pub add latlong2
@@ -84,9 +84,9 @@ flutter pub add latlong2
 
 ### Location Class
 
-The Location class serves as a model to encapsulate location details within our application. This class is broadly based the GeoJSON standard, providing a standardized way to represent and exchange location data.
+The `Location` class serves as a model to encapsulate location details within our application. This class is broadly based the [GeoJSON](https://datatracker.ietf.org/doc/html/rfc7946) standard, providing a standardized way to represent and exchange location data.
 
-Note that Location model leverages the Equatable package, allowing for efficient comparison to other locations. This simplifies tasks like identifying duplicates and optimizing location related logic.
+Note that `Location` model leverages the [Equatable](https://pub.dev/packages/equatable) package, allowing for efficient comparison to other locations. This simplifies tasks like identifying duplicates and optimizing location related logic.
 
 ```dart
 import 'package:flutter_map/flutter_map.dart';
@@ -198,9 +198,9 @@ class Location {
 
 ### Geolocation Class
 
-The Geolocation class encapsulates the core logic for accessing and handling location data. This class is also responsible for making network requests to the geolocation service.
+The `Geolocation` class encapsulates the core logic for accessing and handling location data. This class is also responsible for making network requests to the geolocation service.
 
-Note that every request must include a User-Agent header. This header identifies your application to the server, preventing requests from being rejected by the Nominatim server.
+Note that every request must include a `User-Agent` header. This header identifies your application to the server, preventing requests from being rejected by the [Nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server.
 
 ```dart
 import 'dart:async';
@@ -425,7 +425,7 @@ Future<Location?> getLastKnownLocation() async {
 
 This is the main class of our app responsible for managing the map widget, the location search bar, and any associated UI components, ensuring a seamless and cohesive user experience.
 
-Upon map initialization, if no initialLocation is specified, we attempt to retrieve the user's last known location or determine the user's location based on their device's locale country.
+Upon map initialization, if no `initialLocation` is specified, we attempt to retrieve the user's last known location or determine the user's location based on their device's locale country.
 
 ```dart
 import 'dart:async';
@@ -763,7 +763,7 @@ class _LocationMapState extends State<LocationMap> {
 
 Debouncing is crucial for optimizing search functionality. When a user types quickly in a search bar, numerous requests can be sent to the server, overwhelming it and potentially causing delays or even crashes.
 
-My previous article explains the implementation of DebouncedSearchBar in detail. This optimization significantly improves performance and enhances the overall user experience.
+[My previous article](https://stassop.medium.com/debouncing-flutter-searchanchor-65101042e5aa) explains the implementation of [DebouncedSearchBar](https://github.com/stassop/flutter_debounced_search_bar) in detail. This optimization significantly improves performance and enhances the overall user experience.
 
 ```dart
 import 'package:flutter/material.dart';
@@ -976,7 +976,7 @@ class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
 
 ### Putting It All Together
 
-Here’s our main.dart class. As you can see, the top-level structure is clean and simple, making it easy to repurpose our location search widget in other applications.
+Here’s our `main.dart` class. As you can see, the top-level structure is clean and simple, making it easy to repurpose our location search widget in other applications.
 
 ```dart
 import 'package:flutter/material.dart';

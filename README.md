@@ -1,6 +1,14 @@
-# flutter_location_search
+# Flutter Location Search and Maps
 
-A new Flutter project.
+## Introduction
+This is a simple Flutter project that uses Google Maps and Places API to search for a location and display it on the map. The user can also choose the location by dragging the marker on the map.
+
+## Features
+- Search for a location by typing in the search bar.
+- Choose the location by dragging the marker on the map.
+- Display the location on the map.
+
+## Screenshots
 
 ## Getting Started
 

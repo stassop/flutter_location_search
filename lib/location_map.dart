@@ -10,6 +10,7 @@ import 'geolocation.dart' as Geolocation;
 
 import 'debounced_search_bar.dart';
 import 'round_icon_button.dart';
+import 'location_pin.dart';
 import 'location.dart';
 
 class LocationMap extends StatefulWidget {
@@ -178,6 +179,43 @@ class _LocationMapState extends State<LocationMap> {
     }
   }
 
+  void _showLocationDetails() {
+    if (_location == null) {
+      return;
+    }
+    // Show location details in a bottom sheet
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(_location!.name ?? 'Location', style: Theme.of(context).textTheme.titleLarge),
+                  Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              Text(_location!.displayName ?? 'Address', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 16.0),
+              Text('Lat/lng: ${_location!.latitude}, ${_location!.longitude}'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _mapController.dispose();
@@ -222,10 +260,11 @@ class _LocationMapState extends State<LocationMap> {
                     alignment: Alignment.topCenter,
                     height: 48,
                     width: 48,
-                    child: Tooltip(
-                      message: _location!.toString(),
-                      child: Icon(Icons.location_pin,
-                          size: 48.0, color: Theme.of(context).primaryColor),
+                    child: GestureDetector(
+                      onTap: () {
+                        _showLocationDetails();
+                      },
+                      child: LocationPin(),
                     ),
                   ),
                 ],

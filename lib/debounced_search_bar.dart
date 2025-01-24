@@ -149,7 +149,7 @@ class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
         final Future<Iterable<T>?> future = _debouncedSearch(controller.text);
         try {
           final Iterable<T>? results = await future;
-          // If results is not null and not empty, return a list of ListTile widgets
+          // If there are results, return a list of result tiles
           if (results?.isNotEmpty ?? false) {
             return results!.map((result) {
               return ListTile(
@@ -163,7 +163,7 @@ class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
               );
             }).toList();
           }
-          // Otherwise, if there's no search term, return a list of past results
+          // If there's no search text and there are past results, return a list of past results
           if (controller.text.isEmpty && pastResults.isNotEmpty) {
             // Add a tile with a history icon and 'Search history' title
             return <Widget>[
@@ -183,12 +183,16 @@ class _DebouncedSearchBarState<T> extends State<DebouncedSearchBar<T>> {
                 ),
             ];
           }
-          // If there are no results, return an empty list
-          return <Widget>[
-            ListTile(
-              title: const Text('No results found'),
-            ),
-          ];
+          // If there's search text but no results, return a 'No results found' tile
+          if (controller.text.isNotEmpty) {
+            return <Widget>[
+              ListTile(
+                title: const Text('No results found'),
+              ),
+            ];
+          }
+          // If there's no search text and no past results, return an empty list
+          return <Widget>[];
         } catch (error) {
           return <Widget>[
             ListTile(

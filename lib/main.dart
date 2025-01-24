@@ -20,13 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LocationMap(
-        initialLocation: Location(
-          latitude: 37.7749,
-          longitude: -122.4194,
-          displayName: 'San Francisco, California, United States',
-        ),
-      ),
+      home: LocationMap(),
     );
   }
 }

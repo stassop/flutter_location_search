@@ -41,8 +41,7 @@ Future<dynamic> makeOpenStreetMapRequest({
       })
       ..followRedirects = false
       ..persistentConnection = false;
-
-    print('Requesting: ${request.url}');
+    // print('Requesting: ${request.url}');
 
     // Send the request and get the StreamedResponse with a timeout
     final streamedResponse =

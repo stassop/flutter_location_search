@@ -14,18 +14,17 @@ Future<dynamic> makeOpenStreetMapRequest({
   Map<String, dynamic>? queryParams,
 }) async {
   try {
-    // Convert all special types in the query parameters to strings to avoid errors such as this:
-    // type 'int' is not a subtype of type 'Iterable<dynamic>'
+    // Imperatively convert all query params to strings to avoid type errors
     if (queryParams != null) {
       queryParams =
           queryParams.map((key, value) => MapEntry(key, value.toString()))
               as Map<String, dynamic>;
     }
 
-    // Get the current language code from the locale to pass to the API
+    // Pass the user's locale to the API to get the results in the correct language
     final language = Intl.getCurrentLocale().split('_').first;
 
-    // Create the request with the base URL, path, query parameters, and headers
+    // Create a request object with the OpenStreetMap API URL and parameters
     final request = http.Request(
         'GET',
         Uri.https('nominatim.openstreetmap.org', path, {
@@ -50,8 +49,7 @@ Future<dynamic> makeOpenStreetMapRequest({
     });
 
     // Convert the StreamedResponse into a complete response
-    final http.Response response =
-        await http.Response.fromStream(streamedResponse);
+    final http.Response response = await http.Response.fromStream(streamedResponse);
 
     // Check the response status and handle accordingly
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -86,7 +84,7 @@ Future<dynamic> makeOpenStreetMapRequest({
   }
 }
 
-// Call the OpenStreetMap API to search for locations
+// Call the OpenStreetMap search endpoint with a free-form query
 // https://nominatim.org/release-docs/latest/api/Search/#free-form-query
 Future<List<Location>> searchLocation(String query) async {
   try {
@@ -111,7 +109,7 @@ Future<List<Location>> searchLocation(String query) async {
   }
 }
 
-// The reverse endpoint returns exactly one result or an error when the coordinate is in an area with no OSM data coverage:
+// The reverse endpoint returns exactly one result or an error
 // https://nominatim.org/release-docs/latest/api/Reverse/
 Future<Location?> getLocationByCoordinates(
     {required double latitude, required double longitude}) async {
@@ -135,7 +133,7 @@ Future<Location?> getLocationByCoordinates(
   }
 }
 
-// Use the user's locale to get the country code and search for the location
+// Use the user's locale to get the location from the country code
 // https://nominatim.org/release-docs/latest/api/Search/#structured-query
 Future<Location?> getLocationByLocale() async {
   try {
@@ -158,7 +156,7 @@ Future<Location?> getLocationByLocale() async {
   }
 }
 
-// This function follows the example from the Geolocator package:
+// This function follows the example from the Geolocator package
 // https://pub.dev/packages/geolocator/example
 Future<Location> getCurrentLocation() async {
   bool locationServiceEnabled;

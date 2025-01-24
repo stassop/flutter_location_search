@@ -110,7 +110,7 @@ class _LocationMapState extends State<LocationMap> {
 
   Future<List<Location>> _searchLocation(String query) async {
     try {
-      // Call the OpenStreetMap API to search for locations
+      // Try searching for the location using the OpenStreetMap search endpoint
       final List<Location> results = await Geolocation.searchLocation(query);
       return results;
     } catch (error) {
@@ -130,7 +130,7 @@ class _LocationMapState extends State<LocationMap> {
   }
 
   Future<void> _initMap() async {
-    // This is a very hacky way to wait for the parent dimensions, otherwise the map may not become visible
+    // This is a very hacky way to wait for the parent dimensions, otherwise the map will not render correctly
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
@@ -152,7 +152,6 @@ class _LocationMapState extends State<LocationMap> {
       _isMapMoved = true;
     });
     // To avoid calling onBoundsChanged too frequently, use a simple debounce mechanism
-    // Cancel the previous timer if it exists
     if (_mapMovedTimer != null) {
       _mapMovedTimer!.cancel();
     }
@@ -165,7 +164,7 @@ class _LocationMapState extends State<LocationMap> {
   }
 
   void _onLongPress(LatLng latLng) async {
-    // Try to get the location from the coordinates
+    // When the user long-presses on the map, try to get the location at that point
     try {
       final location = await Geolocation.getLocationByCoordinates(
         latitude: latLng.latitude,

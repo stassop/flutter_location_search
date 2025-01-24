@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'location_map.dart';
-import 'geolocation.dart';
-import 'location.dart';
 
 void main() {
   runApp(const MyApp());
